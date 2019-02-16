@@ -113,7 +113,7 @@ that element is not an array, the original ARRAY is returned as it is."
     (if (arrayp first)
         (let* ((dimensions (array-dimensions array))
                (sub-dimensions (array-dimensions first))
-               (element-type (aif element-type it (array-element-type first)))
+               (element-type (anaphora:aif element-type anaphora:it (array-element-type first)))
                (result (make-array (append dimensions sub-dimensions)
                                    :element-type element-type))
                (length (product dimensions))
@@ -142,9 +142,9 @@ dimension so that the total product equals SIZE.  If that's not possible,
 signal an error.  If there are no missing dimensions, just check that the
 product equals size.  Also accepts other dimension specifications (integer,
 array)."
-  (aetypecase dimensions
-    ((integer 0) (assert (= size it)) (list it))
-    (array (assert (= size (size it))) (dims it))
+  (anaphora:aetypecase dimensions
+    ((integer 0) (assert (= size anaphora:it)) (list anaphora:it))
+    (array (assert (= size (size anaphora:it))) (dims anaphora:it))
     (list (flet ((missing? (dimension) (eq dimension t)))
             (let ((missing)
                   (product 1))
