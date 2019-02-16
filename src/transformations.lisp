@@ -219,7 +219,7 @@ as rank 0 arrays, following the usual semantics."
     (walk-subscripts (flat-dimensions subscripts position)
       (setf (row-major-aref flat-result position)
             (apply function (map 'list (lambda (v s) (aref v s)) vectors subscripts))))
-    ;; Note: Using #'aref rather than (lambda (v s) (aref v s)) leads to error 
+    ;; Note: Using #'aref rather than (lambda (v s) (aref v s)) leads to error
     result))
 
 
