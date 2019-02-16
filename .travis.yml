@@ -1,7 +1,6 @@
 language: lisp
 sudo: required
 
-
 env:
   matrix:
     #- LISP=abcl
