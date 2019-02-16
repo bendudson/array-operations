@@ -3,7 +3,6 @@
 (defpackage #:array-operations
   (:use #:cl
         #:alexandria
-        #:anaphora
         #:optima)
   (:nicknames #:aops)
   (:shadow #:flatten)
