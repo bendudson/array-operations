@@ -24,10 +24,10 @@ are queried for their dimensions.
 
 OBJECTS accepted by this function as valid dimensions are called `dimension
 specifications' in this library."
-  (aetypecase object
-    ((integer 0) (list it))
-    (list it)
-    (array (array-dimensions it))))
+  (anaphora:aetypecase object
+    ((integer 0) (list anaphora:it))
+    (list anaphora:it)
+    (array (array-dimensions anaphora:it))))
 
 (defmacro walk-subscripts ((dimensions subscripts
                             &optional (position (gensym "POSITION")))
