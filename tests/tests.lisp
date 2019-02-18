@@ -7,6 +7,12 @@
 (cl:in-package #:array-operations-tests)
 
 (defsuite tests ())
+(defsuite creation (tests))
+(defsuite utilities (tests))
+(defsuite displacement (tests))
+(defsuite transformations (tests))
+(defsuite indexing (tests))
+(defsuite stack (tests))
 
 (defun run (&optional interactive?)
   "Run all the tests for array-operations."
@@ -14,7 +20,7 @@
 
 ;;; creation
 
-(deftest zeros (tests)
+(deftest zeros (creation)
   (let ((result (aops:zeros 4)))
     (assert-equalp '(simple-vector 4) (type-of result))
     (assert-equalp 0 (aref result 1)))
@@ -22,7 +28,7 @@
     (assert-equalp '(2 2) (array-dimensions result))
     (assert-equalp 0 (aref result 1 1))))
 
-(deftest zeros* (tests)
+(deftest zeros* (creation)
   (let ((result (aops:zeros* 'integer 4)))
     (assert-equalp '(simple-vector 4) (type-of result))
     (assert-equalp 0 (aref result 1)))
@@ -34,7 +40,7 @@
     (assert-equalp '(simple-array double-float (2 2)) (type-of result))
     (assert-equalp 0d0 (aref result 1 1))))
 
-(deftest zeros! (tests)
+(deftest zeros! (creation)
   (let ((array (make-array '(2 3)
                            :element-type 'single-float
                            :initial-element 1.2)))
@@ -42,7 +48,7 @@
     (dotimes (i (array-total-size array))
       (assert-equalp 0s0 (row-major-aref array i)))))
 
-(deftest ones (tests)
+(deftest ones (creation)
   (let ((result (aops:ones 4)))
     (assert-equalp '(simple-vector 4) (type-of result))
     (assert-equalp (aref result 1) 1))
@@ -50,7 +56,7 @@
     (assert-equalp '(2 3 2) (array-dimensions result))
     (assert-equalp 1 (aref result 1 1 0))))
 
-(deftest ones* (tests)
+(deftest ones* (creation)
   (let ((result (aops:ones* 'integer 4)))
     (assert-equalp '(simple-vector 4) (type-of result))
     (assert-equalp (aref result 1) 1))
@@ -62,7 +68,7 @@
     (assert-equalp '(simple-array double-float (2 2)) (type-of result))
     (assert-equalp 1d0 (aref result 1 1))))
 
-(deftest ones! (tests)
+(deftest ones! (creation)
   (let ((array (make-array 3
                            :element-type 'integer
                            :initial-element 3)))
@@ -70,7 +76,7 @@
     (dotimes (i (array-total-size array))
       (assert-equalp 1 (row-major-aref array i)))))
 
-(deftest rand (tests)
+(deftest rand (creation)
   (let ((a (aops:rand 3)))
     (assert-equalp '(3) (array-dimensions a))
     (assert-true (not (equal (aref a 1) (aref a 2))) a)
@@ -83,7 +89,7 @@
     (assert-true (<= c-max 1.0))
     (assert-true (> c-max c-min))))
 
-(deftest rand! (tests)
+(deftest rand! (creation)
   (let ((array (make-array 3
                            :element-type 'double-float
                            :initial-element 3d0)))
@@ -92,7 +98,7 @@
     (assert-true (>= (reduce #'min array) 0.0))
     (assert-true (<= (reduce #'max array) 1.0))))
 
-(deftest rand* (tests)
+(deftest rand* (creation)
   (let ((a (aops:rand* 'double-float 3)))
     (assert-equalp '(3) (array-dimensions a))
     (assert-true (not (equal (aref a 1) (aref a 2))) a)
@@ -105,7 +111,7 @@
     (assert-true (<= c-max 1.0))
     (assert-true (> c-max c-min))))
 
-(deftest randn (tests)
+(deftest randn (creation)
   (let ((a (aops:randn 3)))
     (assert-equalp '(3) (array-dimensions a))
     (assert-true (not (equal (aref a 1) (aref a 2))) a)
@@ -117,7 +123,7 @@
     (assert-true (< c-min 0.0))
     (assert-true (> c-max 0.0))))
 
-(deftest randn* (tests)
+(deftest randn* (creation)
   (let ((a (aops:randn* 'double-float 3)))
     (assert-equalp '(3) (array-dimensions a))
     (assert-true (not (equal (aref a 1) (aref a 2))) a)
@@ -129,25 +135,25 @@
     (assert-true (< c-min 0.0))
     (assert-true (> c-max 0.0))))
 
-(deftest randn! (tests)
+(deftest randn! (creation)
   (let ((a (make-array '(2 2) :element-type 'single-float)))
     (let ((b (aops:randn! a)))
       (assert-equalp a b)
       (assert-false (= (aref a 0 1) (aref a 1 1))))))
 
-(deftest linspace (tests)
+(deftest linspace (creation)
   (assert-equalp #(0 1 2 3) (aops:linspace 0 3 4))
   (assert-equalp #(1 3/2 2 5/2 3) (aops:linspace 1 3 5))
   (assert-equalp #(0.0d0 2.0d0 4.0d0) (aops:linspace 0 4d0 3)))
 
-(deftest linspace! (tests)
+(deftest linspace! (creation)
   (let ((a (make-array 5 :element-type 'single-float)))
     (aops:linspace! a 1 5)
     (assert-equalp #(1 2 3 4 5) a)
     (aops:linspace! a 0 1)
     (assert-equalp #(0.0 0.25 0.5 0.75 1.0) a)))
 
-(deftest similar-array (tests)
+(deftest similar-array (creation)
   (let* ((a #(1 2 3 4))
          (a* (aops:similar-array a)))
     (assert-equalp '(4) (array-dimensions a*))
@@ -164,7 +170,7 @@
 
 ;;; utilities
 
-(deftest walk-subscripts (tests)
+(deftest walk-subscripts (utilities)
   (let (result)
     (aops:walk-subscripts ('(2 3) subscripts position)
       (push (cons position (copy-seq subscripts)) result))
@@ -176,7 +182,7 @@
                      (5 . #(1 2)))
         (reverse result))))
 
-(deftest nested-loop (tests)
+(deftest nested-loop (utilities)
   (let (result)
     (aops:nested-loop (i j) '(2 3)
       (push (list i j) result))
@@ -199,7 +205,7 @@
 
 ;;; displacement
 
-(deftest displacement (tests)
+(deftest displacement (displacement)
   (let ((a #2A((0 1) (2 3) (4 5))))
     ;; displace
     (assert-equalp #(0 1) (aops:displace a 2))
@@ -256,14 +262,14 @@
 
 ;;; transformations
 
-(deftest fill! (tests)
+(deftest fill! (transformations)
   (let ((a (make-array '(3 2) :initial-element 1.0)))
     (aops:fill! a 0)
     (assert-equalp a #2A((0.0 0.0)
                          (0.0 0.0)
                          (0.0 0.0)))))
 
-(deftest coercing (tests)
+(deftest coercing (transformations)
   (assert-equality (curry #'every #'eql)
       #(1d0 2d0 3d0)
       (map 'vector (aops:coercing 'double-float) #(1 2 3)))
@@ -271,7 +277,7 @@
       #(1d0 4d0 9d0)
       (map 'vector (aops:coercing 'double-float (lambda (x) (* x x))) #(1 2 3))))
 
-(deftest generate (tests)
+(deftest generate (transformations)
   (let ((a (aops:generate #'identity '(3 2) :position))
         (b (aops:generate #'identity '(2 3) :subscripts)))
     (assert-equalp #2A((0 1)
@@ -296,7 +302,7 @@
                 (apply #'aref array subscripts)))
         result))))
 
-(deftest permutations (tests)
+(deftest permutations (transformations)
   (assert-equalp #*10110 (aops::permutation-flags '(0 3 2) 5))
   (assert-condition error (aops::check-permutation '(0 1 1)))
   (assert-equalp '(0 1 4) (aops:complement-permutation '(3 2) 5))
@@ -309,7 +315,7 @@
     (assert-equalp-i2 '(0 1 2 3))
     (assert-equalp-i2 '(3 0 2 1))))
 
-(deftest permute (tests)
+(deftest permute (transformations)
   (let ((a (aops:generate #'identity '(3 2) :position)))
     (assert-equalp a (aops:permute '(0 1) a))
     (assert-equalp  #2A((0 2 4)
@@ -327,17 +333,17 @@
     (assert-equalp (aops:permute '(2 0 1) a)
         (permute% (lambda (a b c) (list c a b)) a))))
 
-(deftest each (tests)
+(deftest each (transformations)
   (let ((a (aops:generate #'identity '(2 5) :position)))
     (assert-equalp (aops:generate #'1+ '(2 5) :position) (aops:each #'1+ a)))
   (assert-equalp #(1 1 2 3) (aops:each #'- #(2 3 5 7) #(1 2 3 4))))
 
-(deftest margin (tests)
+(deftest margin (transformations)
   (let ((a (aops:generate #'identity '(3 5) :position)))
     (assert-equalp #(10 35 60) (aops:margin (curry #'reduce #'+) a 1))
     (assert-equalp #(0 66 168 312 504) (aops:margin (curry #'reduce #'*) a 0))))
 
-(deftest recycle (tests)
+(deftest recycle (transformations)
   (assert-equalp (make-array '(3 4 2 1) :initial-element 1)
       (aops:recycle 1 :inner '(2 1) :outer '(3 4)))
   (let ((a (aops:generate #'identity '(2 3) :position)))
@@ -347,7 +353,7 @@
     (assert-equalp (aops:generate (lambda (p) (rem p 6)) '(2 2 3 1) :position)
         (aops:recycle a :inner 1 :outer 2))))
 
-(deftest outer (tests)
+(deftest outer (transformations)
   (let ((a #(2 3 5))
         (b #(7 11))
         (c #2A((7 11)
@@ -365,7 +371,7 @@
       (aops:outer #'* a c))))
 
 
-(deftest vectorize! (tests)
+(deftest vectorize! (transformations)
   (let ((a #2A((1 2) (3 4)))
         (b (make-array '(2 2))))
     (assert-equalp #2A((2 3) (4 5))
@@ -410,7 +416,7 @@
       (assert-equalp 1 count "Expression evaluated multiple times"))))
 
 
-(deftest vectorize* (tests)
+(deftest vectorize* (transformations)
   (let ((a #2A((1 2) (3 4)))
         (b (make-array '(2 2))))
     (assert-equalp #2A((2 3) (4 5))
@@ -420,7 +426,7 @@
     (assert-equalp #(9.0 12.0 15.0)
                    (aops:vectorize* 'single-float (a b) (+ a (* b 2))))))
 
-(deftest vectorize (tests)
+(deftest vectorize (transformations)
   (let ((a #2A((1 2) (3 4)))
         (b (make-array '(2 2))))
     (assert-equalp #2A((2 3) (4 5))
@@ -430,7 +436,7 @@
     (assert-equalp #(9 12 15)
                    (aops:vectorize (a b) (+ a (* b 2))))))
 
-(deftest vectorize-reduce (tests)
+(deftest vectorize-reduce (transformations)
   (let ((a #2A((1 2) (3 4)))
         (b #2A((1 3) (5 4))))
     (assert-equalp 2
@@ -438,7 +444,7 @@
 
 ;;; indexing
 
-(deftest each-index (tests)
+(deftest each-index (indexing)
   (let ((a #2A((1 2 3) (4 5 6)))
         (b #2A((1 2) (3 4))))
 
@@ -480,7 +486,7 @@
      #(1 2 3)
      (aops:each-index i (svref a i)))))
 
-(deftest each-index* (tests)
+(deftest each-index* (indexing)
   (let ((a #(1 2 3))
         (b #2A((1 2) (3 4))))
 
@@ -495,7 +501,7 @@
          (aops:each-index* 'single-float (i j) (aref b i j))
          '(SIMPLE-ARRAY SINGLE-FLOAT (2 2))))))
 
-(deftest each-index! (tests)
+(deftest each-index! (indexing)
   (let ((a (make-array '(2 3))))
 
     ;; Returns the result
@@ -518,7 +524,7 @@
           (i j) (- j i)))
     (assert-equalp 1 count "Expression not evaluated only once")))
 
-(deftest sum-index (tests)
+(deftest sum-index (indexing)
   (let ((A #2A((1 2) (3 4)))
         (B #2A((1 2 3) (4 5 6))))
 
@@ -541,7 +547,7 @@
     (assert-condition error
         (aops:sum-index i (aref B i i)))))
 
-(deftest reduce-index (tests)
+(deftest reduce-index (indexing)
   (let ((A #2A((1 2) (3 4)))
         (B #2A((1 2 3) (4 5 6))))
 
@@ -572,7 +578,7 @@
 
 ;;; stack
 
-(deftest stack-rows (tests)
+(deftest stack-rows (stack)
   (let ((a 1)
         (b #(2 3))
         (c #2A((4 5)
@@ -595,7 +601,7 @@
     (assert-equalp #2A((1) (2) (3)) (aops:stack-rows 1 2 3))
     (assert-condition error (aops:stack-rows #2A((1)) c))))
 
-(deftest stack-cols (tests)
+(deftest stack-cols (stack)
   (let ((a 1)
         (b #(2 3))
         (c #2A((4 5)
@@ -612,7 +618,7 @@
     (assert-equalp #2A((1 2 3)) (aops:stack-cols 1 2 3))
     (assert-condition error (aops:stack-cols #2A((1)) c))))
 
-(deftest stack0 (tests)
+(deftest stack0 (stack)
   (assert-equalp #(0 1 2 3 4 5 6) (aops:stack 0 #(0 1 2 3) #(4 5 6)))
   (assert-equalp #2A((0 1)
                      (2 3)
@@ -624,7 +630,7 @@
   (assert-condition error (aops:stack 0 #(0 1) #2A((0 1 2 3))))
   (assert-condition error (aops:stack 0 #2A((1)) #2A((0 1)))))
 
-(deftest stack (tests)
+(deftest stack (stack)
   (assert-equalp #2A((0 1 5)
                      (2 3 9))
     (aops:stack 1
