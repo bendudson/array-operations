@@ -4,14 +4,14 @@
 ;;;; Invites new methods to enable treating other data structures as arrays.
 
 (defpackage :array-operations/generic
-  (:use :cl)
+  (:use :cl :let-plus)
   (:export :as-array
            :element-type
            :dims
            :size
            :rank
            :dim
-           :&dims
+           :&dims  ;; For let+
            :nrow
            :ncol))
 
@@ -56,13 +56,13 @@ When DIMS is not defined for an object, it falls back to as-array, which may be 
   (:method (array)
     (array-dimensions (as-array array))))
 
-;; "let-plus" has been removed as a dependency of this library.
-;; This will be left commented out, should someone want to use it in the future.
-;(define-let+-expansion (&dims dimensions :value-var value-var
-;                                         :body-var body-var)
-;  "Dimensions of array-like object."
-;  `(let+ ((,dimensions (dims ,value-var)))
-;     ,@body-var))
+;; "let-plus" has been removed as a dependency of the code in this library,
+;; but is needed by some other libraries which depend on ARRAY-OPERATIONS.
+(define-let+-expansion (&dims dimensions :value-var value-var
+                                        :body-var body-var)
+ "Dimensions of array-like object."
+ `(let+ ((,dimensions (dims ,value-var)))
+    ,@body-var))
 
 (defgeneric size (array)
   (:documentation "Return the total number of elements in array.")

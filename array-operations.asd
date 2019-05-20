@@ -6,7 +6,8 @@
   :license "MIT"
   :class :package-inferred-system
   :pathname "src/"
-  :depends-on (:array-operations/all)
+  :depends-on (#:let-plus
+               :array-operations/all)
   :in-order-to ((test-op (test-op :array-operations/tests))))
 
 (asdf:defsystem :array-operations/tests
