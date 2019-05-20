@@ -11,6 +11,7 @@
            :randn    :randn*    :randn!
            :linspace :linspace* :linspace!
            :similar-array
+           :make-array-like
            :generate* :generate))
 
 (in-package :array-operations/creating)
@@ -215,6 +216,9 @@ Returns ARRAY."
               :adjustable adjustable
               :element-type element-type
               :fill-pointer fill-pointer)))
+
+;; Alias for backward compatibility
+(setf (fdefinition 'make-array-like) #'similar-array)
 
 ;;; generating
 
