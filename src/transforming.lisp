@@ -7,7 +7,8 @@
   (:import-from :alexandria
                 :compose
                 :curry
-                :ensure-list)
+                :ensure-list
+                :iota)
   (:export :coercing
            :each*      :each
            :margin*    :margin
@@ -22,7 +23,8 @@
            :permutation-repeated-index
            :permutation-incompatible-rank
            :permute
-           :recycle))
+           :recycle
+           :across))
 
 (in-package :array-operations/transforming)
 
@@ -33,7 +35,6 @@
   (compose (lambda (value) (coerce value element-type))
            function))
 
-
 
 ;;; permutations
 ;;;
@@ -326,3 +327,30 @@ as rank 0 arrays, following the usual semantics."
        -> #(9 12 15)
    "
     `(vectorize* t ,variables ,@body))
+
+(defun across (input function &key (elements nil) (indices nil) (dimensions (dims input)))
+  "Iterate across a range of elements in an array INPUT, with the option of specifying which elements within each dimension to process.
+
+The given FUNCTION should take two arguments: A value and the coordinate (index):
+
+  (let ((array (make-array '(2 2))))
+    (across array (lambda (val coord) (format t \"~a at ~a~%\" val coord))))
+"
+  (let* ((proceeding t)
+	 (first-of-elements (first elements))
+	 (this-range (if (listp first-of-elements)
+			 first-of-elements (list first-of-elements))))
+    (loop :for elix :in (if this-range this-range (iota (nth (length indices) dimensions))) :while proceeding
+       :do (let ((coords (append indices (list elix))))
+	     ;; if the halt-if-true value is output by the function, traversal across the array will end
+	     ;; by means of nullifying the proceeding variable; this will result in a nil return value
+	     ;; from the across function which will stop its recursive parents
+	     (if (< (length indices) (1- (length dimensions)))
+		 (if (not (across input function :elements (rest elements) :dimensions dimensions :indices coords))
+		     (setq proceeding nil))
+		 (multiple-value-bind (output halt-if-true)
+		     (funcall function (apply #'aref input coords)
+			      coords)
+		   (declare (ignore output))
+		   (if halt-if-true (setq proceeding nil))))))
+    proceeding))
