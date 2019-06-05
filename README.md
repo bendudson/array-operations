@@ -63,6 +63,13 @@ To run the test suite (using [clunit](https://github.com/tgutu/clunit)):
   (array-operations-tests:run)
 ```
 
+Notes:
+
+ - Requires ASDF version 3.1.6 (2015-10-18) or later, as it uses the `package-inferred-system` extension.
+   A symptom of an older version of ASDF is an error when loading `array-operations`:
+   `System "array-operations/all" not found`
+   
+
 A quick tour of the library
 ===========================
 
