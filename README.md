@@ -44,21 +44,12 @@ Arrays can be manipulated:
 Installation
 ============
 
-A version of this library is on QuickLisp, based on the [original
-library](https://github.com/tpapp/array-operations). The QuickLisp
-version has some but not all functionality of this fork: It includes the
-`generate`, `each` (element-wise map), `displace`, `flatten`, `split`,
-`combine`, `sub`, `partition`, `stack`, `reshape`, `margin` and
-`recycle` functions.
+This library is on QuickLisp:
 
 ```common-lisp
   (ql:quickload :array-operations)
 ```
-
-This fork keeps these functions, and adds `each-index`, `sum-index`, `reduce-index`,
-`vectorize`, `vectorize-reduce`, `nested-loop`, `zeros`, `ones`, `rand`,
-`randn`, `linspace`, `argmax` and `argmin`. To install, clone into your
-Quicklisp local project directory:
+To get the latest version, clone into your Quicklisp local project directory:
 
 ``` {.bash}
   $ git clone https://github.com/bendudson/array-operations.git ~/quicklisp/local-projects/
