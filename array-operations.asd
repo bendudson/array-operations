@@ -18,7 +18,7 @@
   :license "MIT"
   :depends-on (:array-operations       ; loads everything else
                :alexandria
-               :clunit)
+               :clunit2)
   :pathname "tests/"
   :components ((:file "tests"))
   :perform (test-op (o c) (uiop:symbol-call :array-operations/tests :run)))
