@@ -122,15 +122,15 @@ Returns ARRAY."
       ;; then two normally-distributed numbers are
       ;;  z0 = r * cos(2pi u2)
       ;;  z1 = r * sin(2pi u2)
-      (let* ((u1 (random 1.0))
-             (2piu2 (* 2 pi (random 1.0))) ; 2 * pi * u2
+      (let* ((u1 (+ (random 1.0d0) least-positive-double-float))
+             (2piu2 (* 2 pi (random 1.0d0))) ; 2 * pi * u2
              (r (sqrt (* -2 (log u1)))))
         (setf (row-major-aref array i) (coerce (* r (cos 2piu2)) element-type))
         (setf (row-major-aref array (1+ i)) (coerce (* r (sin 2piu2)) element-type))))
     ;; If size is odd then one extra random number is needed
     (if (not (zerop (logand size 1)))
-        (let* ((u1 (random 1.0))
-               (2piu2 (* 2 pi (random 1.0)))
+        (let* ((u1 (+ (random 1.0d0) least-positive-double-float))
+               (2piu2 (* 2 pi (random 1.0d0)))
                (r (sqrt (* -2 (log u1)))))
           (setf (row-major-aref array (1- size)) (coerce (* r (cos 2piu2)) element-type))))
     array))
