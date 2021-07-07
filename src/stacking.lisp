@@ -18,7 +18,7 @@
   (:import-from :alexandria
                 :curry)
   (:export :copy-row-major-block
-           :stack-rows-copy :stack-rows* :stack-rows
+           :stack-rows* :stack-rows
            :stack-cols-copy :stack-cols* :stack-cols
            :stack* :stack))
 
@@ -40,59 +40,56 @@ This function should be used to implement copying of contiguous row-major blocks
                     source))))
   (values))
 
-(defgeneric stack-rows-copy (source destination element-type start-row)
-  (:documentation "Method used to implement the copying of objects in STACK-ROW*, by copying the elements of SOURCE to DESTINATION, starting with the row index START-ROW in the latter.  Elements are coerced to ELEMENT-TYPE.
+;; TODO: Are these the best names for this and 'cols', following)?
+(defun rows (object)
+  "Return the number of rows of an array or scalar. Scalars return 1."
+  (etypecase object
+    (array (ecase (rank object)
+             (1 1)
+             (2 (dim object 0))))
+    (number 1)))
 
-This method is only called when (DIMS SOURCE) was non-nil.  It is assumed that it onlychanges elements in DESTINATION which are supposed to be copies of SOURCE.  DESTINATION is always a matrix with element-type upgraded from ELEMENT-TYPE, and its NCOL should match the relevant dimension of SOURCE.
-
-All objects have a fallback method, defined using AS-ARRAY.  The only reason for definining a method is efficiency.")
-  (:method (source destination element-type start-row)
-    (stack-rows-copy (as-array source) destination element-type start-row))
-  (:method ((source array) destination element-type start-row)
-    (copy-row-major-block source destination element-type
-                          :destination-start (* start-row (ncol destination)))))
+;; TODO: Are these the best names for this and 'rows', previous)?
+(defun cols (object)
+  "Return the number of columns of an array or scalar. Scalars return 1."
+  (etypecase object
+    (array (ecase (rank object)
+             (1 (dim object 0))
+             (2 (dim object 1))))
+    (number 1)))
 
 (defun stack-rows* (element-type &rest objects)
-  "Stack OBJECTS row-wise into an array of the given ELEMENT-TYPE, coercing if necessary.  Always return a simple array of rank 2.
+  "Stack OBJECTS, row-wise, into a simple 2D array of given ELEMENT-TYPE.
 
-How objects are used depends on their dimensions, queried by DIMS:
-
-- when the object has 0 dimensions, fill a row with the element.
-
-- when the object has 1 dimension, use it as a row.
-
-- when the object has 2 dimensions, use it as a matrix.
-
-When applicable, compatibility of dimensions is checked, and the result is used to determine the number of columns.  When all objects have 0 dimensions, the result has one column."
-  (let (ncol)
-    (flet ((check-ncol (dim)
-             (if ncol
-                 (assert (= ncol dim))
-                 (setf ncol dim))))
-      (let* ((nrow 0)
-             (start-rows-and-dims (mapcar
-                                   (lambda (object)
-                                     (let* ((dims (dims object))
-                                            (increment (ecase (length dims)
-                                                         (0 1)
-                                                         (1 (check-ncol (first dims))
-                                                            1)
-                                                         (2 (check-ncol (second dims))
-                                                            (first dims)))))
-                                       (prog1 (cons nrow dims)
-                                         (incf nrow increment))))
-                                   objects))
-             (ncol (or ncol 1)))
-        (let ((result (make-array (list nrow ncol) :element-type element-type)))
-          (mapc (lambda (start-rows-and-dims object)
-                  (destructuring-bind (start-row &rest dims)
-                      start-rows-and-dims
-                    (if dims
-                        (stack-rows-copy object result element-type start-row)
-                        (fill (displace result ncol (* start-row ncol))
-                              (coerce object element-type)))))
-                start-rows-and-dims objects)
-          result)))))
+   Objects may be arrays or scalars.
+   Array arguments must all have the same number of columns.
+   Scalars are repeated to fill their row in the result."
+  (let* ((array-objects (remove-if-not #'arrayp objects))
+         (array-objects-cols (mapcar #'cols array-objects)))
+    (when array-objects
+      (assert (apply #'= array-objects-cols) nil
+              "All ARRAY-type arguments must have the same width"))
+    (let* ((height (reduce #'+ (mapcar #'rows objects)))
+           (width (or (first array-objects-cols) 1)) ; 1 when only scalars.
+           (result (make-array (list height width)
+                               :element-type element-type))
+           (flat-result (flatten result)))
+      (loop as object in objects
+            with cursor = 0
+            when (arrayp object)
+              ;; If we didn't need to coerce, we could just use REPLACE.
+              do (loop for object-element across (flatten object)
+                       for idx from cursor
+                       do (setf (aref flat-result idx)
+                                (coerce object-element element-type)))
+                 (incf cursor (array-total-size object))
+            else
+              do (fill flat-result
+                       (coerce object element-type)
+                       :start cursor
+                       :end (+ cursor width))
+                 (incf cursor width))
+      result)))
 
 (defun stack-rows (&rest objects)
   "Like STACK-ROWS*, with ELEMENT-TYPE T."
